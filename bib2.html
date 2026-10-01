@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BERLAGA VOL.3 - PENGECEKAN BIB PESERTA</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Plus+Jakarta+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* ==================== ROOT VARIABLES ==================== */
+        :root {
+            --bg-color: #080c14;
+            --card-bg: rgba(15, 23, 42, 0.75);
+            --card-border: rgba(0, 242, 254, 0.2);
+            --accent-cyan: #00f2fe;
+            --accent-blue: #4facfe;
+            --accent-glow: rgba(0, 242, 254, 0.35);
+            --accent-glow-strong: rgba(0, 242, 254, 0.6);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --danger: #ff4d4d;
+            --success: #10b981;
+            --border-color: rgba(255, 255, 255, 0.08);
+        }
+
+        /* ==================== RESET & GENERAL ==================== */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(circle at 50% 0%, rgba(0, 242, 254, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 85% 85%, rgba(79, 172, 254, 0.1) 0%, transparent 40%),
+                linear-gradient(to bottom, rgba(8, 12, 20, 0.8), #080c14);
+            background-attachment: fixed;
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 30px 20px;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Decorative Grid Background Pattern */
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+            background-size: 40px 40px;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* ==================== HEADER ==================== */
+        header {
+            text-align: center;
+            margin-top: 10px;
+            margin-bottom: 35px;
+            position: relative;
+        }
+
+        .event-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.6rem;
+            font-weight: 900;
+            letter-spacing: 4px;
+            background: linear-gradient(135deg, #ffffff 0%, var(--accent-cyan) 50%, var(--accent-blue) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-transform: uppercase;
+            filter: drop-shadow(0 0 15px var(--accent-glow));
+        }
+
+        .event-subtitle {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--accent-cyan);
+            letter-spacing: 3px;
+            margin-top: 6px;
+            text-transform: uppercase;
+            opacity: 0.9;
+        }
+
+        .event-loc {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            letter-spacing: 1.5px;
+            margin-top: 2px;
+            text-transform: uppercase;
+        }
+
+        /* Admin Icon Button */
+        .admin-trigger-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--card-border);
+            color: var(--text-muted);
+            width: 45px;
+            height: 45px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(12px);
+            z-index: 10;
+        }
+
+        .admin-trigger-btn:hover {
+            color: var(--accent-cyan);
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 20px var(--accent-glow);
+            transform: translateY(-2px);
+        }
+
+        /* ==================== SEARCH CONTAINER & SCANNER ==================== */
+        .search-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 24px;
+            padding: 32px;
+            width: 100%;
+            max-width: 480px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), 
+                        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(16px);
+            position: relative;
+            margin-bottom: 25px;
+            transition: border-color 0.3s ease;
+        }
+
+        .search-card:hover {
+            border-color: rgba(0, 242, 254, 0.4);
+        }
+
+        .search-box-wrapper {
+            position: relative;
+            margin-bottom: 22px;
+        }
+
+        /* Container Input */
+        .magnifier-scan-area {
+            position: relative;
+            width: 100%;
+            height: 60px;
+            background: rgba(8, 12, 20, 0.6);
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .magnifier-scan-area:focus-within {
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 18px var(--accent-glow);
+        }
+
+        .magnifier-scan-area input {
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            border: none;
+            padding: 0 20px 0 55px;
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 500;
+            outline: none;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            z-index: 2;
+        }
+
+        .magnifier-scan-area input::placeholder {
+            color: rgba(148, 163, 184, 0.6);
+        }
+
+        /* Teks Contoh / Helper Below Input */
+        .input-hint {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 8px;
+            margin-left: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 500;
+        }
+
+        .input-hint::before {
+            content: "•";
+            color: var(--accent-cyan);
+        }
+
+        /* ANIMASI KACA PEMBESAR */
+        .moving-magnifier {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.25rem;
+            color: var(--accent-cyan);
+            z-index: 3;
+            pointer-events: none;
+            animation: moveSlightly 2.5s infinite ease-in-out;
+            filter: drop-shadow(0 0 8px var(--accent-cyan));
+        }
+
+        /* Light beam tipis bergerak menyertai kaca pembesar */
+        .scan-laser-beam {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(to bottom, transparent, var(--accent-cyan), transparent);
+            box-shadow: 0 0 10px var(--accent-cyan);
+            z-index: 1;
+            animation: beamSlightly 2.5s infinite ease-in-out;
+        }
+
+        @keyframes moveSlightly {
+            0%, 100% { transform: translateY(-50%) translateX(0px) rotate(0deg); }
+            50% { transform: translateY(-50%) translateX(10px) rotate(6deg); }
+        }
+
+        @keyframes beamSlightly {
+            0%, 100% { left: 28px; opacity: 0.3; }
+            50% { left: 38px; opacity: 0.9; }
+        }
+
+        .btn-check {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 14px;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+            color: #080c14;
+            font-weight: 800;
+            font-size: 0.95rem;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            box-shadow: 0 8px 20px var(--accent-glow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-check::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(60deg, transparent, rgba(255,255,255,0.3), transparent);
+            transform: rotate(30deg);
+            transition: transform 0.6s ease;
+        }
+
+        .btn-check:hover::after {
+            transform: rotate(30deg) translate(100%, 100%);
+        }
+
+        .btn-check:hover {
+            box-shadow: 0 12px 28px var(--accent-glow-strong);
+            transform: translateY(-2px);
+        }
+
+        /* ==================== RESULT CARD ==================== */
+        .result-container {
+            width: 100%;
+            max-width: 480px;
+            display: none;
+            animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .bib-card {
+            background: linear-gradient(145deg, rgba(15, 23, 42, 0.9), rgba(8, 12, 20, 0.95));
+            border: 2px solid var(--accent-cyan);
+            border-radius: 24px;
+            padding: 30px 25px;
+            text-align: center;
+            box-shadow: 0 0 35px rgba(0, 242, 254, 0.2), inset 0 0 15px rgba(0, 242, 254, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .bib-badge-label {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.75rem;
+            letter-spacing: 3px;
+            color: var(--accent-cyan);
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+
+        .bib-number-display {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 4rem;
+            font-weight: 900;
+            color: #ffffff;
+            text-shadow: 0 0 25px var(--accent-cyan);
+            margin: 12px 0;
+            line-height: 1;
+            letter-spacing: 2px;
+        }
+
+        .participant-details {
+            border-top: 1px solid var(--border-color);
+            padding-top: 18px;
+            margin-top: 18px;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            font-size: 0.92rem;
+        }
+
+        .detail-label {
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .detail-value {
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 16px;
+            border-radius: 30px;
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--success);
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            margin-top: 10px;
+        }
+
+        .error-card {
+            background: rgba(255, 77, 77, 0.1);
+            border: 1px solid rgba(255, 77, 77, 0.4);
+            color: var(--danger);
+            padding: 18px;
+            border-radius: 16px;
+            text-align: center;
+            font-size: 0.9rem;
+            font-weight: 600;
+            backdrop-filter: blur(10px);
+        }
+
+        /* ==================== MODALS ==================== */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(4, 7, 13, 0.85);
+            backdrop-filter: blur(10px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+
+        .modal-card {
+            background: #0f172a;
+            border: 1px solid var(--card-border);
+            border-radius: 24px;
+            padding: 30px;
+            width: 90%;
+            max-width: 580px;
+            max-height: 88vh;
+            overflow-y: auto;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.8);
+            position: relative;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 22px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 14px;
+        }
+
+        .modal-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.15rem;
+            color: var(--accent-cyan);
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .modal-close {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.3rem;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .modal-close:hover {
+            color: #fff;
+        }
+
+        /* Form Inputs */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(8, 12, 20, 0.6);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            color: #fff;
+            outline: none;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            transition: border-color 0.2s;
+        }
+
+        .form-input:focus {
+            border-color: var(--accent-cyan);
+        }
+
+        /* Admin Table */
+        .table-wrapper {
+            max-height: 220px;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            margin-top: 18px;
+            background: rgba(8, 12, 20, 0.4);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background: rgba(15, 23, 42, 0.9);
+            color: var(--accent-cyan);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.75rem;
+            letter-spacing: 1px;
+            position: sticky;
+            top: 0;
+        }
+
+        /* Buttons */
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.08);
+            color: #fff;
+            border: 1px solid var(--border-color);
+            padding: 12px 18px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            transition: all 0.2s;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .btn-danger {
+            background: rgba(255, 77, 77, 0.15);
+            color: var(--danger);
+            border: 1px solid rgba(255, 77, 77, 0.3);
+            padding: 12px 18px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            transition: all 0.2s;
+        }
+
+        .btn-danger:hover {
+            background: var(--danger);
+            color: #fff;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            border: 2px dashed rgba(0, 242, 254, 0.3);
+            border-radius: 14px;
+            padding: 22px;
+            text-align: center;
+            cursor: pointer;
+            background: rgba(0, 242, 254, 0.02);
+            transition: all 0.3s ease;
+        }
+
+        .file-input-wrapper:hover {
+            border-color: var(--accent-cyan);
+            background: rgba(0, 242, 254, 0.05);
+        }
+
+        .file-input-wrapper input[type="file"] {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Event -->
+    <header>
+        <h1 class="event-title">BERLAGA VOL.3</h1>
+        <p class="event-subtitle">PENGECEKAN BIB PESERTA</p>
+        <p class="event-loc">Yogya Ciamis</p>
+    </header>
+
+    <!-- Admin Icon Button Top Right -->
+    <button class="admin-trigger-btn" id="btnAdminTrigger" title="Login Admin">
+        <i class="fa-solid fa-user-gear"></i>
+    </button>
+
+    <!-- Main Search Card -->
+    <div class="search-card">
+        <div class="search-box-wrapper">
+            <div class="magnifier-scan-area">
+                <i class="fa-solid fa-magnifying-glass moving-magnifier"></i>
+                <div class="scan-laser-beam"></div>
+                <input type="text" id="waInput" placeholder="Masukkan No. WhatsApp Terdaftar..." autocomplete="off">
+            </div>
+            <!-- Teks Contoh / Helper -->
+            <span class="input-hint">Contoh : 081XXXXXXXX</span>
+        </div>
+        <button class="btn-check" id="btnCheck">
+            <i class="fa-solid fa-search"></i> CEK NO BIB ANDA
+        </button>
+    </div>
+
+    <!-- Result Display Container -->
+    <div class="result-container" id="resultContainer"></div>
+
+    <!-- Modal Login Admin -->
+    <div class="modal-overlay" id="modalLogin">
+        <div class="modal-card" style="max-width: 380px;">
+            <div class="modal-header">
+                <h3 class="modal-title"><i class="fa-solid fa-lock"></i> LOGIN ADMIN</h3>
+                <button class="modal-close" onclick="closeModal('modalLogin')">&times;</button>
+            </div>
+            <form id="formLogin">
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" id="loginUser" class="form-input" placeholder="Masukkan username" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="loginPass" class="form-input" placeholder="Masukkan password" required>
+                </div>
+                <button type="submit" class="btn-check" style="margin-top: 10px;">MASUK</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Dashboard Admin -->
+    <div class="modal-overlay" id="modalAdminDashboard">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 class="modal-title"><i class="fa-solid fa-database"></i> PANEL ADMIN PESERTA</h3>
+                <button class="modal-close" onclick="closeModal('modalAdminDashboard')">&times;</button>
+            </div>
+            
+            <!-- Import CSV Section -->
+            <div class="form-group">
+                <label>Import Data Peserta (CSV: bib,nama,whatsapp)</label>
+                <div class="file-input-wrapper">
+                    <i class="fa-solid fa-file-csv" style="font-size: 2.2rem; color: var(--accent-cyan); margin-bottom: 8px;"></i>
+                    <p style="font-size: 0.85rem; color: var(--text-muted);">Klik atau Drop File CSV di Sini</p>
+                    <input type="file" id="csvFileInput" accept=".csv">
+                </div>
+            </div>
+
+            <!-- Manual Add Section -->
+            <div style="border-top: 1px solid var(--border-color); padding-top: 16px; margin-top: 16px;">
+                <p style="font-size: 0.85rem; font-weight: 700; margin-bottom: 10px; color: var(--accent-cyan); letter-spacing: 0.5px;">+ TAMBAH PESERTA MANUAL</p>
+                <div style="display: grid; grid-template-columns: 1fr 2fr 2fr; gap: 8px;">
+                    <input type="text" id="addBib" class="form-input" placeholder="BIB">
+                    <input type="text" id="addNama" class="form-input" placeholder="Nama Lengkap">
+                    <input type="text" id="addWa" class="form-input" placeholder="No WhatsApp">
+                </div>
+                <button class="btn-secondary" id="btnAddManual" style="margin-top: 10px; width: 100%;">Tambah Peserta</button>
+            </div>
+
+            <!-- Table Data Preview -->
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>BIB</th>
+                            <th>Nama</th>
+                            <th>WhatsApp</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminTableBody">
+                        <!-- Dynamic content -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Bottom Actions -->
+            <div class="btn-group" style="justify-content: space-between; align-items: center;">
+                <button class="btn-danger" id="btnClearAll"><i class="fa-solid fa-trash"></i> Reset Data</button>
+                <button class="btn-secondary" onclick="logoutAdmin()"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Logic -->
+    <script>
+        const defaultData = [
+            { bib: "1001", nama: "Ahmad Subagja", whatsapp: "087823670161" },
+            { bib: "1002", nama: "Budi Santoso", whatsapp: "081234567890" },
+            { bib: "1003", nama: "Citra Lestari", whatsapp: "085711223344" }
+        ];
+
+        const STORAGE_KEY = "BERLAGA_VOL3_PESERTA";
+        let pesertaData = [];
+        let isAdminLoggedIn = false;
+
+        document.addEventListener("DOMContentLoaded", () => {
+            loadPesertaData();
+            setupEventListeners();
+        });
+
+        function loadPesertaData() {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            if (stored) {
+                try {
+                    pesertaData = JSON.parse(stored);
+                } catch(e) {
+                    pesertaData = [...defaultData];
+                }
+            } else {
+                pesertaData = [...defaultData];
+                savePesertaData();
+            }
+        }
+
+        function savePesertaData() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(pesertaData));
+        }
+
+        function maskWhatsApp(phoneStr) {
+            if (!phoneStr) return "XXXXXXXX";
+            const clean = phoneStr.replace(/\D/g, '');
+            if (clean.length <= 4) return "XXXXXXXX" + clean;
+            return "XXXXXXXX" + clean.slice(-4);
+        }
+
+        function cleanPhone(str) {
+            return str.replace(/\D/g, '');
+        }
+
+        function setupEventListeners() {
+            document.getElementById("btnCheck").addEventListener("click", performCheck);
+            document.getElementById("waInput").addEventListener("keypress", (e) => {
+                if (e.key === "Enter") performCheck();
+            });
+
+            document.getElementById("btnAdminTrigger").addEventListener("click", () => {
+                if (isAdminLoggedIn) {
+                    openModal("modalAdminDashboard");
+                    renderAdminTable();
+                } else {
+                    openModal("modalLogin");
+                }
+            });
+
+            document.getElementById("formLogin").addEventListener("submit", (e) => {
+                e.preventDefault();
+                const user = document.getElementById("loginUser").value.trim();
+                const pass = document.getElementById("loginPass").value.trim();
+
+                if (user === "admin" && pass === "087823670161") {
+                    isAdminLoggedIn = true;
+                    closeModal("modalLogin");
+                    document.getElementById("formLogin").reset();
+                    openModal("modalAdminDashboard");
+                    renderAdminTable();
+                } else {
+                    alert("Username atau Password Salah!");
+                }
+            });
+
+            document.getElementById("csvFileInput").addEventListener("change", handleCSVImport);
+            document.getElementById("btnAddManual").addEventListener("click", handleAddManual);
+            document.getElementById("btnClearAll").addEventListener("click", () => {
+                if (confirm("Apakah Anda yakin ingin menghapus semua data peserta?")) {
+                    pesertaData = [];
+                    savePesertaData();
+                    renderAdminTable();
+                }
+            });
+        }
+
+        function performCheck() {
+            const inputVal = document.getElementById("waInput").value.trim();
+            const resultContainer = document.getElementById("resultContainer");
+            const cleanedInput = cleanPhone(inputVal);
+
+            if (!cleanedInput) {
+                resultContainer.style.display = "block";
+                resultContainer.innerHTML = `<div class="error-card"><i class="fa-solid fa-circle-exclamation"></i> Silakan masukkan nomor WhatsApp terdaftar Anda.</div>`;
+                return;
+            }
+
+            const found = pesertaData.find(item => cleanPhone(item.whatsapp) === cleanedInput);
+
+            resultContainer.style.display = "block";
+            if (found) {
+                resultContainer.innerHTML = `
+                    <div class="bib-card">
+                        <div class="bib-badge-label">NOMOR BIB PESERTA</div>
+                        <div class="bib-number-display">${found.bib}</div>
+                        <div class="participant-details">
+                            <div class="detail-row">
+                                <span class="detail-label">Nama Peserta</span>
+                                <span class="detail-value">${found.nama}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">No. WhatsApp</span>
+                                <span class="detail-value">${maskWhatsApp(found.whatsapp)}</span>
+                            </div>
+                        </div>
+                        <div class="status-badge"><i class="fa-solid fa-circle-check"></i> TERVERIFIKASI</div>
+                    </div>
+                `;
+            } else {
+                resultContainer.innerHTML = `
+                    <div class="error-card">
+                        <i class="fa-solid fa-triangle-exclamation"></i> Data peserta tidak ditemukan. Periksa kembali nomor WhatsApp Anda.
+                    </div>
+                `;
+            }
+        }
+
+        function handleCSVImport(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                const text = evt.target.result;
+                const lines = text.split(/\r\n|\n/);
+                let importedCount = 0;
+
+                lines.forEach((line, index) => {
+                    if (!line.trim()) return;
+                    const parts = line.split(",");
+                    if (parts.length >= 3) {
+                        const bib = parts[0].trim();
+                        const nama = parts[1].trim();
+                        const whatsapp = parts[2].trim();
+
+                        if (index === 0 && (bib.toLowerCase().includes("bib") || nama.toLowerCase().includes("nama"))) {
+                            return;
+                        }
+
+                        if (bib && nama && whatsapp) {
+                            pesertaData.push({ bib, nama, whatsapp });
+                            importedCount++;
+                        }
+                    }
+                });
+
+                savePesertaData();
+                renderAdminTable();
+                alert(`Berhasil mengimpor ${importedCount} data peserta!`);
+                e.target.value = "";
+            };
+            reader.readAsText(file);
+        }
+
+        function handleAddManual() {
+            const bib = document.getElementById("addBib").value.trim();
+            const nama = document.getElementById("addNama").value.trim();
+            const wa = document.getElementById("addWa").value.trim();
+
+            if (!bib || !nama || !wa) {
+                alert("Harap isi semua kolom!");
+                return;
+            }
+
+            pesertaData.push({ bib, nama, whatsapp: wa });
+            savePesertaData();
+            renderAdminTable();
+
+            document.getElementById("addBib").value = "";
+            document.getElementById("addNama").value = "";
+            document.getElementById("addWa").value = "";
+        }
+
+        function renderAdminTable() {
+            const tbody = document.getElementById("adminTableBody");
+            tbody.innerHTML = "";
+
+            if (pesertaData.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color: var(--text-muted);">Belum ada data peserta.</td></tr>`;
+                return;
+            }
+
+            pesertaData.forEach((item, index) => {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                    <td><strong>${item.bib}</strong></td>
+                    <td>${item.nama}</td>
+                    <td>${maskWhatsApp(item.whatsapp)}</td>
+                    <td>
+                        <button onclick="deleteParticipant(${index})" style="background:transparent; border:none; color:var(--danger); cursor:pointer;">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function deleteParticipant(index) {
+            pesertaData.splice(index, 1);
+            savePesertaData();
+            renderAdminTable();
+        }
+
+        function logoutAdmin() {
+            isAdminLoggedIn = false;
+            closeModal("modalAdminDashboard");
+        }
+
+        function openModal(id) {
+            document.getElementById(id).style.display = "flex";
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).style.display = "none";
+        }
+    </script>
+</body>
+</html>
